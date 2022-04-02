@@ -62,7 +62,7 @@ def main() -> None:
     args = parser.parse_args()
     next_output_filename = next_output_filename_factory()
 
-    rows_counter = 0
+    rows_counter = 1
 
     with open(args.input_file, mode="r") as infile:
         reader = csv.reader(infile)
@@ -80,7 +80,7 @@ def main() -> None:
             rows_counter += 1
 
             if rows_counter == args.max_output_rows:
-                rows_counter = 0
+                rows_counter = 1
 
                 output_file.close()
                 output_file = open(next_output_filename(), mode="w")
