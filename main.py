@@ -32,24 +32,30 @@ parser.add_argument(
 )
 
 
-def new_csv_writer():
-    ms = int(time.time() * 1000)
-    outfile = open(f"{ms}.csv", "w")
-
-    return csv.writer(outfile)
-
-
 def next_output_filename_factory() -> Callable:
     seconds = int(time.time())
     output_files_counter = 0
 
-    def next_output_filename() -> str:
+    def inner() -> str:
         nonlocal output_files_counter
 
         output_files_counter += 1
         return f"output-{seconds}_{output_files_counter}.csv"
 
-    return next_output_filename
+    return inner
+
+
+def new_csv_writer(file):
+    writer = csv.writer(file)
+
+    writer.writerow([
+        "Дата", "Категория",
+        "Плательщик", "Счет",
+        "Сумма-расход", "Счет-получатель",
+        "Сумма-доход", "Комментарий"
+    ])
+
+    return writer
 
 
 def main() -> None:
@@ -65,12 +71,12 @@ def main() -> None:
         print("Headers", headers)
 
         output_file = open(next_output_filename(), mode="w")
-        writer = csv.writer(output_file)
+        writer = new_csv_writer(output_file)
 
         converter = OneMoneyConverter(reader)
 
         for row in converter.generator():
-            writer.writerow(row)
+            writer.writerow(row.to_tuple())
             rows_counter += 1
 
             if rows_counter == args.max_output_rows:
@@ -78,7 +84,9 @@ def main() -> None:
 
                 output_file.close()
                 output_file = open(next_output_filename(), mode="w")
-                writer = csv.writer(output_file)
+                writer = new_csv_writer(output_file)
+
+        output_file.close()
 
 
 if __name__ == "__main__":
